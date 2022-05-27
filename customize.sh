@@ -9,7 +9,6 @@ if [ "$API" -lt $NUM ]; then
   abort
 else
   ui_print "- SDK $API"
-  ui_print " "
 fi
 
 # sepolicy.rule
@@ -30,7 +29,6 @@ if ! grep -Eq $NAME $FILE; then
   cp -rf $MODPATH/system_10/* $MODPATH/system
 fi
 rm -rf $MODPATH/system_10
-ui_print " "
 
 # extract
 APP=miuisystem
@@ -40,7 +38,6 @@ DIR=$MODPATH/system/etc
 DES=assets/*
 unzip -d $TMPDIR -o $FILE $DES
 cp -rf $TMPDIR/$DES $DIR
-ui_print " "
 
 # cleaning
 ui_print "- Cleaning..."
@@ -75,7 +72,6 @@ if [ "$PROP" == 1 ]; then
     sed -i "s/<allow-in-power-save package=\"$PKGS\"\/>//g" $FILE
     sed -i "s/<allow-in-power-save package=\"$PKGS\" \/>//g" $FILE
   done
-  ui_print " "
 fi
 
 # function
@@ -122,9 +118,6 @@ file_check_bin() {
     fi
     if [ "$FILE" ]; then
       rm -f `find $MODPATH/system -type f -name $NAMES`
-    else
-      ui_print "- Added $NAMES"
-      ui_print " "
     fi
   done
 }
@@ -145,9 +138,6 @@ file_check_system() {
     fi
     if [ -f $FILE ]; then
       rm -f `find $MODPATH/system -type f -name $NAMES`
-    else
-      ui_print "- Added $NAMES"
-      ui_print " "
     fi
   done
 }
@@ -168,9 +158,6 @@ file_check_vendor() {
     fi
     if [ -f $FILE ]; then
       rm -f `find $MODPATH/system -type f -name $NAMES`
-    else
-      ui_print "- Added $NAMES"
-      ui_print " "
     fi
   done
 }
@@ -192,10 +179,7 @@ file_check_vendor_grep() {
     if [ -f $FILE ]; then
       rm -f `find $MODPATH/system -type f -name $NAMES`
     else
-      if grep -Eq $NAMES $DES; then
-        ui_print "- Added $NAMES"
-        ui_print " "
-      else
+      if ! grep -Eq $NAMES $DES; then
         rm -f `find $MODPATH/system -type f -name $NAMES`
       fi
     fi
@@ -211,7 +195,6 @@ NAME="libarcsoft_beautyshot.so libmpbase.so libc++_shared.so"
 if getprop | grep -Eq "miui.camlib\]: \[1"; then
   ui_print "- Using camera libs"
   file_check_vendor
-  ui_print " "
 else
   for NAMES in $NAME; do
     rm -f `find $MODPATH/system -type f -name $NAMES`
@@ -229,7 +212,6 @@ file_check_vendor_grep
 if getprop | grep -Eq "miui.public\]: \[1"; then
   ui_print "- Using public.libraries.txt patch"
   sed -i 's/#p//g' $MODPATH/post-fs-data.sh
-  ui_print " "
 fi
 
 # permission
@@ -247,7 +229,6 @@ if [ "$API" -ge 26 ]; then
   chcon -R u:object_r:vendor_file:s0 $MODPATH/system/vendor
   chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/system/vendor/etc
 fi
-ui_print " "
 
 
 
