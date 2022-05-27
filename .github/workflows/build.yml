@@ -1,0 +1,26 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'initrd/**'
+      - '.github/workflows/build.yml'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build magisk module package
+      run: |
+        zip -r miui-core-magisk.zip * -x .git/* .github/* README.md
+    - uses: actions/upload-artifact@v1
+      with:
+        name: miui-core-magisk
+        path: miui-core-magisk.zip
+    

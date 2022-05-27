@@ -5,15 +5,9 @@ mount -o rw,remount /data
 MODPATH=${0%/*}
 API=`getprop ro.build.version.sdk`
 
-# run
-FILE=$MODPATH/sepolicy.sh
-if [ -f $FILE ]; then
-  sh $FILE
-fi
-
 # property
 PROP=`getprop ro.build.characteristics`
-if [ ! "$PROP" ]; then
+if [ ! -z "$PROP" ]; then
   resetprop ro.build.characteristics default
 fi
 
@@ -27,11 +21,8 @@ if [ "$DEVICE" == cancro ]; then
 fi
 
 # etc
-if [ -d /sbin/.magisk ]; then
-  MAGISKTMP=/sbin/.magisk
-else
-  MAGISKTMP=`find /dev -mindepth 2 -maxdepth 2 -type d -name .magisk`
-fi
+MAGISKTMP="$(magisk --path)"
+[ -z "$MAGISKTMP" ] && MAGISKTMP=/sbin
 ETC=$MAGISKTMP/mirror/system/etc
 VETC=$MAGISKTMP/mirror/system/vendor/etc
 MODETC=$MODPATH/system/etc
@@ -72,12 +63,7 @@ if [ ! -f $VETC/$DES ]; then
   chmod 0644 $FILE
 fi
 if [ ! -f $VETC/$DES ] && [ "$API" -ge 26 ]; then
-  magiskpolicy "dontaudit vendor_configs_file labeledfs filesystem associate"
-  magiskpolicy "allow     vendor_configs_file labeledfs filesystem associate"
-  magiskpolicy "dontaudit init vendor_configs_file file relabelfrom"
-  magiskpolicy "allow     init vendor_configs_file file relabelfrom"
   chcon u:object_r:vendor_configs_file:s0 $FILE
-  magiskpolicy --live "type vendor_configs_file"
 fi
 
 # cleaning

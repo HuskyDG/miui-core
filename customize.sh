@@ -1,23 +1,4 @@
-ui_print " "
 
-# info
-MODVER=`grep_prop version $MODPATH/module.prop`
-MODVERCODE=`grep_prop versionCode $MODPATH/module.prop`
-ui_print " ID=$MODID"
-ui_print " Version=$MODVER"
-ui_print " VersionCode=$MODVERCODE"
-ui_print " MagiskVersion=$MAGISK_VER"
-ui_print " MagiskVersionCode=$MAGISK_VER_CODE"
-ui_print " "
-
-# bit
-if [ "$IS64BIT" != true ]; then
-  ui_print "- 32 bit"
-  rm -rf `find $MODPATH/system -type d -name *64`
-else
-  ui_print "- 64 bit"
-fi
-ui_print " "
 
 # sdk
 NUM=21
@@ -36,21 +17,10 @@ if [ "$BOOTMODE" != true ]; then
   mount -o rw -t auto /dev/block/bootdevice/by-name/persist /persist
   mount -o rw -t auto /dev/block/bootdevice/by-name/metadata /metadata
 fi
-FILE=$MODPATH/sepolicy.sh
-DES=$MODPATH/sepolicy.rule
-if [ -f $FILE ] && ! getprop | grep -Eq "sepolicy.sh\]: \[1"; then
-  mv -f $FILE $DES
-  sed -i 's/magiskpolicy --live "//g' $DES
-  sed -i 's/"//g' $DES
-fi
 
 # magisk
-if [ -d /sbin/.magisk ]; then
-  MAGISKTMP=/sbin/.magisk
-else
-  MAGISKTMP=`find /dev -mindepth 2 -maxdepth 2 -type d -name .magisk`
-fi
-
+MAGISKTMP="$(magisk --path)"
+[ -z "$MAGISKTMP" ] && MAGISKTMP=/sbin
 # function
 NAME=_ZN7android23sp_report_stack_pointerEv
 FILE=/system/lib*/libandroid_runtime.so
@@ -124,11 +94,6 @@ for NAMES in $NAME; do
     sh $FILE
     rm -f $FILE
   fi
-  rm -rf /metadata/magisk/$NAMES
-  rm -rf /mnt/vendor/persist/magisk/$NAMES
-  rm -rf /persist/magisk/$NAMES
-  rm -rf /data/unencrypted/magisk/$NAMES
-  rm -rf /cache/magisk/$NAMES
 done
 }
 
@@ -278,12 +243,6 @@ for DIRS in $DIR; do
   chown 0.2000 $DIRS
 done
 if [ "$API" -ge 26 ]; then
-  magiskpolicy "dontaudit { system_lib_file vendor_file vendor_configs_file } labeledfs filesystem associate"
-  magiskpolicy "allow     { system_lib_file vendor_file vendor_configs_file } labeledfs filesystem associate"
-  magiskpolicy "dontaudit init { system_lib_file vendor_file vendor_configs_file } dir relabelfrom"
-  magiskpolicy "allow     init { system_lib_file vendor_file vendor_configs_file } dir relabelfrom"
-  magiskpolicy "dontaudit init { system_lib_file vendor_file vendor_configs_file } file relabelfrom"
-  magiskpolicy "allow     init { system_lib_file vendor_file vendor_configs_file } file relabelfrom"
   chcon -R u:object_r:system_lib_file:s0 $MODPATH/system/lib*
   chcon -R u:object_r:vendor_file:s0 $MODPATH/system/vendor
   chcon -R u:object_r:vendor_configs_file:s0 $MODPATH/system/vendor/etc
